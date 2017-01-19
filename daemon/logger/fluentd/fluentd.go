@@ -21,14 +21,9 @@ import (
 )
 
 type fluentd struct {
-	tag           string
-	containerID   string
-	containerName string
-	imageID       string
-	imageName     string
-	logImageInfo  bool
-	writer        *fluent.Fluent
-	extra         map[string]string
+	tag    string
+	writer *fluent.Fluent
+	extra  map[string]string
 }
 
 type location struct {
@@ -56,7 +51,6 @@ const (
 	retryWaitKey    = "fluentd-retry-wait"
 	maxRetriesKey   = "fluentd-max-retries"
 	asyncConnectKey = "fluentd-async-connect"
-	imageInfoKey    = "fluentd-log-image"
 )
 
 func init() {
@@ -118,11 +112,6 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 	}
 
-	logImageInfo := false
-	if info.Config[imageInfoKey] == "true" {
-		logImageInfo = true
-	}
-
 	fluentConfig := fluent.Config{
 		FluentPort:       loc.port,
 		FluentHost:       loc.host,
@@ -142,27 +131,16 @@ func New(info logger.Info) (logger.Logger, error) {
 		return nil, err
 	}
 	return &fluentd{
-		tag:           tag,
-		containerID:   info.ContainerID,
-		containerName: info.ContainerName,
-		imageID:       info.ContainerImageID,
-		imageName:     info.ContainerImageName,
-		logImageInfo:  logImageInfo,
-		writer:        log,
-		extra:         extra,
+		tag:    tag,
+		writer: log,
+		extra:  extra,
 	}, nil
 }
 
 func (f *fluentd) Log(msg *logger.Message) error {
 	data := map[string]string{
-		"container_id":   f.containerID,
-		"container_name": f.containerName,
-		"source":         msg.Source,
-		"log":            string(msg.Line),
-	}
-	if f.logImageInfo {
-		data["image_id"] = f.imageID
-		data["image_name"] = f.imageName
+		"source": msg.Source,
+		"log":    string(msg.Line),
 	}
 	for k, v := range f.extra {
 		data[k] = v
@@ -187,12 +165,12 @@ func ValidateLogOpt(cfg map[string]string) error {
 		case "env":
 		case "labels":
 		case "tag":
+		case "info":
 		case addressKey:
 		case bufferLimitKey:
 		case retryWaitKey:
 		case maxRetriesKey:
 		case asyncConnectKey:
-		case imageInfoKey:
 			// Accepted
 		default:
 			return fmt.Errorf("unknown log opt '%s' for fluentd log driver", key)

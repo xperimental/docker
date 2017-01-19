@@ -178,6 +178,79 @@ func TestExtraAttributes(t *testing.T) {
 				"env3": "value3",
 			},
 		},
+		{
+			desc: "empty info attribute",
+			info: Info{
+				Config: map[string]string{
+					"info": "",
+				},
+			},
+			extra: make(map[string]string),
+		},
+		{
+			desc: "unknown info attribute",
+			info: Info{
+				Config: map[string]string{
+					"info": "unknownField",
+				},
+			},
+			extra: make(map[string]string),
+		},
+		{
+			desc: "single info",
+			info: Info{
+				Config: map[string]string{
+					"info": "containerName",
+				},
+				ContainerName: "interesting-lastname",
+			},
+			extra: map[string]string{
+				"containerName": "interesting-lastname",
+			},
+		},
+		{
+			desc: "single info with mod",
+			info: Info{
+				Config: map[string]string{
+					"info": "containerName",
+				},
+				ContainerName: "interesting-lastname",
+			},
+			keyMod: func(string) string {
+				return "mod"
+			},
+			extra: map[string]string{
+				"mod": "interesting-lastname",
+			},
+		},
+		{
+			desc: "multiple info",
+			info: Info{
+				Config: map[string]string{
+					"info": "containerName,imageName",
+				},
+				ContainerName:      "interesting-lastname",
+				ContainerImageName: "library/hello-world:latest",
+			},
+			extra: map[string]string{
+				"containerName": "interesting-lastname",
+				"imageName":     "library/hello-world:latest",
+			},
+		},
+		{
+			desc: "multiple info ignore not found",
+			info: Info{
+				Config: map[string]string{
+					"info": "containerName,unknownField,imageName",
+				},
+				ContainerName:      "interesting-lastname",
+				ContainerImageName: "library/hello-world:latest",
+			},
+			extra: map[string]string{
+				"containerName": "interesting-lastname",
+				"imageName":     "library/hello-world:latest",
+			},
+		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
 			extra := test.info.ExtraAttributes(test.keyMod)

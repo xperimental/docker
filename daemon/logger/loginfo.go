@@ -58,6 +58,18 @@ func (info *Info) ExtraAttributes(keyMod func(string) string) map[string]string 
 		}
 	}
 
+	infoKeys, ok := info.Config["info"]
+	if ok && len(infoKeys) > 0 {
+		for _, k := range strings.Split(infoKeys, ",") {
+			if v, vok := info.value(k); vok {
+				if keyMod != nil {
+					k = keyMod(k)
+				}
+				extra[k] = v
+			}
+		}
+	}
+
 	return extra
 }
 
@@ -108,4 +120,25 @@ func (info *Info) ImageFullID() string {
 // ImageName is an alias of ContainerImageName
 func (info *Info) ImageName() string {
 	return info.ContainerImageName
+}
+
+func (info *Info) value(key string) (string, bool) {
+	switch key {
+	case "containerID":
+		return info.ContainerID, true
+	case "containerName":
+		return info.ContainerName, true
+	case "containerEntrypoint":
+		return info.ContainerEntrypoint, true
+	case "imageID":
+		return info.ContainerImageID, true
+	case "imageName":
+		return info.ContainerImageName, true
+	case "logPath":
+		return info.LogPath, true
+	case "daemonName":
+		return info.DaemonName, true
+	default:
+	}
+	return "", false
 }

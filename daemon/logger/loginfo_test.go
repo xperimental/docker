@@ -179,13 +179,18 @@ func TestExtraAttributes(t *testing.T) {
 			},
 		},
 		{
-			desc: "empty info attribute",
+			desc: "default info",
 			info: Info{
 				Config: map[string]string{
 					"info": "",
 				},
+				ContainerID:   "abcdef",
+				ContainerName: "interesting-lastname",
 			},
-			extra: make(map[string]string),
+			extra: map[string]string{
+				"containerID":   "abcdef",
+				"containerName": "interesting-lastname",
+			},
 		},
 		{
 			desc: "unknown info attribute",

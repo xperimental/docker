@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const defaultInfoKeys = "containerID,containerName"
+
 // Info provides enough information for a logging driver to do its function.
 type Info struct {
 	Config              map[string]string
@@ -59,14 +61,15 @@ func (info *Info) ExtraAttributes(keyMod func(string) string) map[string]string 
 	}
 
 	infoKeys, ok := info.Config["info"]
-	if ok && len(infoKeys) > 0 {
-		for _, k := range strings.Split(infoKeys, ",") {
-			if v, vok := info.value(k); vok {
-				if keyMod != nil {
-					k = keyMod(k)
-				}
-				extra[k] = v
+	if !ok || len(infoKeys) == 0 {
+		infoKeys = defaultInfoKeys
+	}
+	for _, k := range strings.Split(infoKeys, ",") {
+		if v, vok := info.value(k); vok && len(v) > 0 {
+			if keyMod != nil {
+				k = keyMod(k)
 			}
+			extra[k] = v
 		}
 	}
 
